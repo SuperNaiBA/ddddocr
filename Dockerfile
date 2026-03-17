@@ -2,8 +2,8 @@
 FROM python:3.10-slim
 
 # 镜像作者信息
-LABEL maintainer="sml2h3"
-LABEL description="DdddOcr - 通用验证码识别API服务"
+LABEL maintainer="lovefaker"
+LABEL description="DdddOcr"
 
 # 设置工作目录
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
-    libgl1-mesa-glx \
+    libglx-mesa0 \
     libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -22,8 +22,6 @@ RUN apt-get update && \
 COPY requirements.txt .
 
 # 安装 Python 依赖
-# --no-cache-dir: 不缓存下载的包，减小镜像大小
-# -r requirements.txt: 从文件安装依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件到工作目录
@@ -36,22 +34,34 @@ ENV PYTHONPATH=/app
 # 这些环境变量可以在 docker run 或 docker-compose 中覆盖
 
 # API 服务器配置
-ENV DDDDOCR_HOST=0.0.0.0       # 监听所有网络接口
-ENV DDDDOCR_PORT=8000          # 服务运行端口
-ENV DDDDOCR_WORKERS=1          # API 服务工作进程数
+# DDDDOCR_HOST: 监听所有网络接口
+ENV DDDDOCR_HOST=0.0.0.0
+# DDDDOCR_PORT: 服务运行端口
+ENV DDDDOCR_PORT=8000
+# DDDDOCR_WORKERS: API 服务工作进程数
+ENV DDDDOCR_WORKERS=1
 
 # OCR 引擎配置
-ENV DDDDOCR_OCR=true           # 是否启用 OCR 功能
-ENV DDDDOCR_DET=false          # 是否启用目标检测功能
-ENV DDDDOCR_OLD=false          # 是否使用旧版 OCR 模型
-ENV DDDDOCR_BETA=false         # 是否使用 Beta 版 OCR 模型
-ENV DDDDOCR_USE_GPU=false      # 是否使用 GPU 加速
-ENV DDDDOCR_DEVICE_ID=0        # GPU 设备 ID
-ENV DDDDOCR_SHOW_AD=true       # 是否显示广告
+# DDDDOCR_OCR: 是否启用 OCR 功能
+ENV DDDDOCR_OCR=true
+# DDDDOCR_DET: 是否启用目标检测功能
+ENV DDDDOCR_DET=false
+# DDDDOCR_OLD: 是否使用旧版 OCR 模型
+ENV DDDDOCR_OLD=false
+# DDDDOCR_BETA: 是否使用 Beta 版 OCR 模型
+ENV DDDDOCR_BETA=false
+# DDDDOCR_USE_GPU: 是否使用 GPU 加速
+ENV DDDDOCR_USE_GPU=false
+# DDDDOCR_DEVICE_ID: GPU 设备 ID
+ENV DDDDOCR_DEVICE_ID=0
+# DDDDOCR_SHOW_AD: 是否显示广告
+ENV DDDDOCR_SHOW_AD=true
 
 # 自定义模型配置（需要挂载卷才能访问）
-ENV DDDDOCR_IMPORT_ONNX_PATH="" # 自定义模型路径
-ENV DDDDOCR_CHARSETS_PATH=""    # 自定义字符集路径
+# DDDDOCR_IMPORT_ONNX_PATH: 自定义模型路径
+ENV DDDDOCR_IMPORT_ONNX_PATH="custom_models"
+# DDDDOCR_CHARSETS_PATH: 自定义字符集路径
+# ENV DDDDOCR_CHARSETS_PATH=""
 
 # 暴露端口（与 DDDDOCR_PORT 环境变量保持一致）
 EXPOSE 8000
@@ -74,4 +84,4 @@ CMD python -m ddddocr api \
 
 # 健康检查，确保容器正常运行
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost:${DDDDOCR_PORT}/health || exit 1 
+  CMD curl -f http://localhost:${DDDDOCR_PORT}/health || exit 1
